@@ -1,0 +1,12 @@
+name: basecall-tb-sputum
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.8
+  - mamba
+  - snakemake
+  - snakefmt
+  - pandas
+prefix: /usr/local/Caskroom/miniconda/base/envs/basecall-tb-sputum
