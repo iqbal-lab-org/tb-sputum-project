@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Set
 
+import pandas as pd
 from snakemake.utils import min_version
 
 # require minimum snakemake version
@@ -9,16 +9,38 @@ min_version("6.10.0")
 
 
 # =====================================
-# Constants for workflow
-PathLike = Union[str, Path, os.PathLike]
-GB = 1_024
-# =====================================
-
-
-# =====================================
 # Workflow config items
 configfile: "config/config.yaml"
 
 
-containers: Dict[str, PathLike] = config["containers"]
+samplesheet = pd.read_csv(config["samplesheet"])
+containers: Dict[str, str] = config["containers"]
 # =====================================
+
+# =====================================
+# Constants for workflow
+GB = 1_024
+rules_dir = Path("workflow/rules").resolve()
+fast5_dir = Path(config["fast5_dir"]).resolve()
+data_dir = Path("data").resolve()
+GUPPY_VERSION = containers["guppy-gpu"].split(":")[-1]
+rule_log_dir = Path("logs/stderr")
+# =====================================
+
+
+# =====================================
+# Generate the set of required output files from the pipeline
+output: Set[Path] = set()
+for run in samplesheet["run"]:
+    output.add(
+        data_dir / f"basecalls/guppy_v{GUPPY_VERSION}/{run}/sequencing_summary.txt"
+    )
+# =====================================
+
+
+rule all:
+    input:
+        output,
+
+
+include: rules_dir / "basecall.smk"
