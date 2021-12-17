@@ -32,6 +32,8 @@ rule_log_dir = Path("logs/stderr")
 decontam_db = data_dir / "decontam_db"
 results = Path("results").resolve()
 ont_results = results / "nanopore"
+#todo
+illumina_samples = dict()
 illumina_results = results / "illumina"
 report_dir = results / "report"
 BWA_EXTNS = [".amb", ".ann", ".bwt", ".pac", ".sa"]
@@ -41,16 +43,9 @@ BWA_EXTNS = [".amb", ".ann", ".bwt", ".pac", ".sa"]
 # =====================================
 # Generate the set of required output files from the pipeline
 output: Set[Path] = set()
-filter_logfiles: Set[Path] = set()
-mykrobe_results: Set[Path] = set()
-rasusa_logs: Set[Path] = set()
-for sample, row in samplesheet.iterrows():
-    output.add(data_dir / f"fastqs/guppy_v{GUPPY_VERSION}/{sample}.fq.gz")
-    filter_logfiles.add(rule_log_dir / "filter_contamination/{sample}.log")
-    mykrobe_results.add(amr_dir / f"{sample}.mykrobe.json")
-    rasusa_logs.add(rule_log_dir / f"subsample_reads/{sample}.log")
-output.add(report_dir / "composition.html")
-output.add(report_dir / "amr.html")
+# for sample, row in samplesheet.iterrows():
+output.add(report_dir / "nanopore_composition.html")
+output.add(report_dir / "nanopore_amr.html")
 # =====================================
 
 

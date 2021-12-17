@@ -248,7 +248,7 @@ rule subsample_nanopore_reads:
     container:
         containers["rasusa"]
     params:
-        covg=config["max_covg"],
+        covg=config["max_covg"]["nanopore"],
         genome_size=config["genome_size"],
         seed=88,
     log:
@@ -280,7 +280,7 @@ rule subsample_illumina_reads:
     container:
         containers["rasusa"]
     params:
-        covg=config["max_covg"],
+        covg=config["max_covg"]["illumina"],
         genome_size=config["genome_size"],
         seed=88,
     log:
