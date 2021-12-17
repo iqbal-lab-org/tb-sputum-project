@@ -129,7 +129,7 @@ rule map_illumina_to_decontam_db:
     params:
         map_extras="-M",
     conda:
-        envs["aln_tools"]
+        str(env_dir / "aln_tools.yaml")
     log:
         rule_log_dir / "map_illumina_to_decontam_db/{isolate}/{sample}.log",
     shell:
