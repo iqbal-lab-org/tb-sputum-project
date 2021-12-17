@@ -33,7 +33,6 @@ decontam_db = data_dir / "decontam_db"
 results = Path("results").resolve()
 ont_results = results / "nanopore"
 illumina_results = results / "illumina"
-plot_dir = results / "plots"
 report_dir = results / "report"
 BWA_EXTNS = [".amb", ".ann", ".bwt", ".pac", ".sa"]
 # =====================================

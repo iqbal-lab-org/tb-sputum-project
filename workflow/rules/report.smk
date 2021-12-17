@@ -1,6 +1,6 @@
 rule plot_sample_composition:
     input:
-        tsv=rules.generate_krona_input.output.krona_input,
+        tsv=rules.generate_nanopore_krona_input.output.krona_input,
     output:
         chart=report(
             plot_dir / "krona/{sample}.krona.html",

@@ -142,14 +142,14 @@ rule map_illumina_to_decontam_db:
         """
 
 
-rule filter_contamination:
+rule filter_nanopore_contamination:
     input:
         bam=rules.map_nanopore_to_decontam_db.output.bam,
         metadata=rules.build_decontamination_db.output.metadata,
     output:
-        keep_ids=filtered_dir / "{sample}/keep.reads",
-        contam_ids=filtered_dir / "{sample}/contaminant.reads",
-        unmapped_ids=filtered_dir / "{sample}/unmapped.reads",
+        keep_ids=ont_results / "filtered/{sample}/keep.reads",
+        contam_ids=ont_results / "filtered/{sample}/contaminant.reads",
+        unmapped_ids=ont_resilts / "filtered/{sample}/unmapped.reads",
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: attempt * GB,
@@ -160,7 +160,7 @@ rule filter_contamination:
         extra="--verbose --ignore-secondary",
         outdir=lambda wildcards, output: Path(output.keep_ids).parent,
     log:
-        rule_log_dir / "filter_contamination/{sample}.log",
+        rule_log_dir / "filter_nanopore_contamination/{sample}.log",
     shell:
         """
         python {params.script} {params.extra} \
@@ -170,28 +170,78 @@ rule filter_contamination:
         """
 
 
-rule extract_decontaminated_reads:
+rule filter_illumina_contamination:
+    input:
+        bam=rules.map_illumina_to_decontam_db.output.bam,
+        metadata=rules.build_decontamination_db.output.metadata,
+    output:
+        keep_ids=illumina_results / "filtered/{isolate}/{sample}/keep.reads",
+        contam_ids=illumina_results / "filtered/{isolate}/{sample}/contaminant.reads",
+        unmapped_ids=illumina_results / "filtered/{isolate}/{sample}/unmapped.reads",
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: attempt * GB,
+    conda:
+        str(env_dir / "filter.yaml")
+    params:
+        script=scripts_dir / "filter_contamination.py",
+        extra="--verbose --ignore-secondary",
+        outdir=lambda wildcards, output: Path(output.keep_ids).parent,
+    log:
+        rule_log_dir / "filter_illumina_contamination/{isolate}/{sample}.log",
+    shell:
+        """
+        python {params.script} {params.extra} \
+            -i {input.bam} \
+            -m {input.metadata} \
+            -o {params.outdir} 2> {log}
+        """
+
+
+rule extract_decontaminated_nanopore_reads:
     input:
         reads=rules.map_nanopore_to_decontam_db.input.query,
-        read_ids=rules.filter_contamination.output.keep_ids,
+        read_ids=rules.filter_nanopore_contamination.output.keep_ids,
     output:
-        reads=filtered_dir / "{sample}/{sample}.filtered.fq.gz",
+        reads=ont_results / "filtered/{sample}/{sample}.filtered.fq.gz",
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: int(2 * GB) * attempt,
     log:
-        rule_log_dir / "extract_decontaminated_reads/{sample}.log",
+        rule_log_dir / "extract_decontaminated_nanopore_reads/{sample}.log",
     container:
         containers["seqkit"]
     shell:
         "seqkit grep -o {output.reads} -f {input.read_ids} {input.reads} 2> {log}"
 
 
-rule subsample_reads:
+rule extract_decontaminated_illumina_reads:
     input:
-        reads=rules.extract_decontaminated_reads.output.reads,
+        r1=rules.map_illumina_to_decontam_db.input.r1,
+        r2=rules.map_illumina_to_decontam_db.input.r2,
+        read_ids=rules.filter_illumina_contamination.output.keep_ids,
     output:
-        reads=subsample_dir / "{sample}/{sample}.subsampled.fq.gz",
+        r1=illumina_results / "filtered/{isolate}/{sample}/{sample}_R1.filtered.fq.gz",
+        r2=illumina_results / "filtered/{isolate}/{sample}/{sample}_R2.filtered.fq.gz",
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: int(2 * GB) * attempt,
+    log:
+        rule_log_dir / "extract_decontaminated_illumina_reads/{isolate}/{sample}.log",
+    container:
+        containers["seqkit"]
+    shell:
+        """
+        seqkit grep -o {output.r1} -f {input.read_ids} {input.r1} 2> {log}
+        seqkit grep -o {output.r2} -f {input.read_ids} {input.r2} 2>> {log}
+        """
+
+
+rule subsample_nanopore_reads:
+    input:
+        reads=rules.extract_decontaminated_nanopore_reads.output.reads,
+    output:
+        reads=ont_results / "subsampled/{sample}/{sample}.subsampled.fq.gz",
     threads: 1
     resources:
         mem_mb=int(0.5 * GB),
@@ -202,7 +252,7 @@ rule subsample_reads:
         genome_size=config["genome_size"],
         seed=88,
     log:
-        rule_log_dir / "subsample_reads/{sample}.log",
+        rule_log_dir / "subsample_nanopore_reads/{sample}.log",
     shell:
         """
         rasusa -c {params.covg} \
@@ -213,12 +263,44 @@ rule subsample_reads:
         """
 
 
-rule generate_krona_input:
+rule subsample_illumina_reads:
+    input:
+        reads=[
+            rules.extract_decontaminated_illumina_reads.output.r1,
+            rules.extract_decontaminated_illumina_reads.output.r2,
+        ],
+    output:
+        r1=illumina_results
+        / "subsampled/{isolate}/{sample}/{sample}_R1.subsampled.fq.gz",
+        r2=illumina_results
+        / "subsampled/{isolate}/{sample}/{sample}_R2.subsampled.fq.gz",
+    threads: 1
+    resources:
+        mem_mb=int(0.5 * GB),
+    container:
+        containers["rasusa"]
+    params:
+        covg=config["max_covg"],
+        genome_size=config["genome_size"],
+        seed=88,
+    log:
+        rule_log_dir / "subsample_illumina_reads/{isolate}/{sample}.log",
+    shell:
+        """
+        rasusa -c {params.covg} \
+            -g {params.genome_size} \
+            -i {input.reads} \
+            -o {output.r1} {output.r2} \
+            -s {params.seed} 2> {log}
+        """
+
+
+rule generate_nanopore_krona_input:
     input:
         bam=rules.map_nanopore_to_decontam_db.output.bam,
         metadata=rules.build_decontamination_db.output.metadata,
     output:
-        krona_input=plot_dir / "krona/{sample}.krona.tsv",
+        krona_input=ont_results / "plots/   krona/{sample}.krona.tsv",
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: int(0.5 * GB) * attempt,
@@ -228,7 +310,30 @@ rule generate_krona_input:
         script=scripts_dir / "generate_krona_input.py",
         extras="--ignore-secondary",
     log:
-        rule_log_dir / "generate_krona_input/{sample}.log",
+        rule_log_dir / "generate_nanopore_krona_input/{sample}.log",
+    shell:
+        """
+        python {params.script} {params.extras} \
+            -i {input.bam} -m {input.metadata} -o {output.krona_input} 2> {log}
+        """
+
+
+rule generate_illumina_krona_input:
+    input:
+        bam=rules.map_illumina_to_decontam_db.output.bam,
+        metadata=rules.build_decontamination_db.output.metadata,
+    output:
+        krona_input=illumina_results / "plots/krona/{isolate}/{sample}.krona.tsv",
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: int(0.5 * GB) * attempt,
+    conda:
+        str(env_dir / "krona.yaml")
+    params:
+        script=scripts_dir / "generate_krona_input.py",
+        extras="--ignore-secondary",
+    log:
+        rule_log_dir / "generate_illumina_krona_input/{isolate}/{sample}.log",
     shell:
         """
         python {params.script} {params.extras} \

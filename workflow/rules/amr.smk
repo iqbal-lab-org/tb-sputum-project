@@ -1,6 +1,6 @@
 rule mykrobe:
     input:
-        reads=rules.subsample_reads.output.reads,
+        reads=rules.subsample_nanopore_reads.output.reads,
     output:
         report=amr_dir / "{sample}.mykrobe.json",
     shadow:
