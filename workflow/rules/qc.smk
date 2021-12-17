@@ -21,7 +21,7 @@ rule build_decontamination_db:
         """
 
 
-rule index_decontam_db:
+rule index_decontam_db_minimap2:
     input:
         fasta=rules.build_decontamination_db.output.fasta,
     output:
@@ -32,7 +32,7 @@ rule index_decontam_db:
     params:
         extras="-I 12G -x map-ont",
     log:
-        rule_log_dir / "index_decontam_db.log",
+        rule_log_dir / "index_decontam_db_minimap2.log",
     conda:
         str(env_dir / "aln_tools.yaml")
     shell:
@@ -44,9 +44,55 @@ rule index_decontam_db:
         """
 
 
-rule map_to_decontam_db:
+rule index_decontam_db_bwa:
     input:
-        index=rules.index_decontam_db.output.mm2_index,
+        fasta=rules.build_decontamination_db.output.fasta,
+    output:
+        bwa_index=multiext(str(decontam_db / "remove_contam.fa.gz"), *BWA_EXTNS),
+    threads: 4
+    resources:
+        mem_mb=lambda wildcards, attempt: attempt * int(32 * GB),
+    log:
+        rule_log_dir / "index_decontam_db_bwa.log",
+    conda:
+        str(env_dir / "aln_tools.yaml")
+    shell:
+        "bwa index {input.fasta} 2> {log}"
+
+
+rule illumina_preprocessing:
+    input:
+        r1=illumina_dir / "{isolate}/{sample}_R1.fq.gz",
+        r2=illumina_dir / "{isolate}/{sample}_R2.fq.gz",
+    output:
+        r1=results / "illumina/preprocessing/{isolate}/{sample}_R1.fq.gz",
+        r2=results / "illumina/preprocessing/{isolate}/{sample}_R2.fq.gz",
+        report=report(
+            results / "illumina/preprocessing/{isolate}/{sample}.fastp.html",
+            category="QC",
+            caption=report_dir / "illumina_preprocessing.rst",
+        ),
+    threads: 4
+    resources:
+        mem_mb=lambda wildcards, attempt: attempt * int(4 * GB),
+    log:
+        rule_log_dir / "illumina_preprocessing/{isolate}/{sample}.log",
+    container:
+        containers["fastp"]
+    params:
+        opts="-z 6 -l 30 --cut_tail",
+    shadow:
+        "shallow"
+    shell:
+        """
+        fastp --in1 {input.r1} --in2 {input.r2} --out1 {output.r1} --out2 {output.r2} \
+          -w {threads} -h {output.report} 2> {log}
+        """
+
+
+rule map_nanopore_to_decontam_db:
+    input:
+        index=rules.index_decontam_db_minimap2.output.mm2_index,
         query=rules.combine_fastqs.output.fastq,
     output:
         bam=results / "mapped/{sample}.sorted.bam",
@@ -70,7 +116,7 @@ rule map_to_decontam_db:
 
 rule filter_contamination:
     input:
-        bam=rules.map_to_decontam_db.output.bam,
+        bam=rules.map_nanopore_to_decontam_db.output.bam,
         metadata=rules.build_decontamination_db.output.metadata,
     output:
         keep_ids=filtered_dir / "{sample}/keep.reads",
@@ -98,7 +144,7 @@ rule filter_contamination:
 
 rule extract_decontaminated_reads:
     input:
-        reads=rules.map_to_decontam_db.input.query,
+        reads=rules.map_nanopore_to_decontam_db.input.query,
         read_ids=rules.filter_contamination.output.keep_ids,
     output:
         reads=filtered_dir / "{sample}/{sample}.filtered.fq.gz",
@@ -141,7 +187,7 @@ rule subsample_reads:
 
 rule generate_krona_input:
     input:
-        bam=rules.map_to_decontam_db.output.bam,
+        bam=rules.map_nanopore_to_decontam_db.output.bam,
         metadata=rules.build_decontamination_db.output.metadata,
     output:
         krona_input=plot_dir / "krona/{sample}.krona.tsv",

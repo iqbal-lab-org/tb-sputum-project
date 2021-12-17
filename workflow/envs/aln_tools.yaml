@@ -7,3 +7,4 @@ dependencies:
   - python=3.8
   - bioconda::samtools=1.14
   - bioconda::minimap2=2.23
+  - bioconda::bwa=0.7.17

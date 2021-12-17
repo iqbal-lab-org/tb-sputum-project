@@ -23,17 +23,19 @@ GB = 1_024
 rules_dir = Path("workflow/rules").resolve()
 env_dir = Path("workflow/envs").resolve()
 scripts_dir = Path("workflow/scripts").resolve()
-fast5_dir = Path(config["fast5_dir"]).resolve()
+nfs_data_dir = Path(config["nfs_data_dir"]).resolve()
+fast5_dir = nfs_data_dir / "nanopore/fast5"
+illumina_dir = nfs_data_dir / "illumina"
 data_dir = Path("data").resolve()
 GUPPY_VERSION = containers["guppy-gpu"].split(":")[-1]
 rule_log_dir = Path("logs/stderr")
 decontam_db = data_dir / "decontam_db"
 results = Path("results").resolve()
-filtered_dir = results / "filtered"
-subsample_dir = results / "subsample"
+ont_results = results / "nanopore"
+illumina_results = results / "illumina"
 plot_dir = results / "plots"
-amr_dir = results / "amr_predictions"
 report_dir = results / "report"
+BWA_EXTNS = [".amb", ".ann", ".bwt", ".pac", ".sa"]
 # =====================================
 
 
