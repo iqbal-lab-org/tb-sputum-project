@@ -149,7 +149,7 @@ rule filter_nanopore_contamination:
     output:
         keep_ids=ont_results / "filtered/{sample}/keep.reads",
         contam_ids=ont_results / "filtered/{sample}/contaminant.reads",
-        unmapped_ids=ont_resilts / "filtered/{sample}/unmapped.reads",
+        unmapped_ids=ont_results / "filtered/{sample}/unmapped.reads",
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: attempt * GB,
