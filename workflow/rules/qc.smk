@@ -65,10 +65,10 @@ rule illumina_preprocessing:
         r1=illumina_dir / "{isolate}/{sample}_R1.fq.gz",
         r2=illumina_dir / "{isolate}/{sample}_R2.fq.gz",
     output:
-        r1=results / "illumina/preprocessing/{isolate}/{sample}_R1.fq.gz",
-        r2=results / "illumina/preprocessing/{isolate}/{sample}_R2.fq.gz",
+        r1=illumina_results / "preprocessing/{isolate}/{sample}_R1.fq.gz",
+        r2=Illumina_results / "preprocessing/{isolate}/{sample}_R2.fq.gz",
         report=report(
-            results / "illumina/preprocessing/{isolate}/{sample}.fastp.html",
+            illumina_results / "preprocessing/{isolate}/{sample}.fastp.html",
             category="QC",
             caption=report_dir / "illumina_preprocessing.rst",
         ),
@@ -95,8 +95,8 @@ rule map_nanopore_to_decontam_db:
         index=rules.index_decontam_db_minimap2.output.mm2_index,
         query=rules.combine_fastqs.output.fastq,
     output:
-        bam=results / "mapped/{sample}.sorted.bam",
-        index=results / "mapped/{sample}.sorted.bam.bai",
+        bam=ont_results / "mapped/{sample}.sorted.bam",
+        index=ont_results / "mapped/{sample}.sorted.bam.bai",
     threads: 8
     resources:
         mem_mb=lambda wildcards, attempt: attempt * int(16 * GB),
@@ -110,6 +110,34 @@ rule map_nanopore_to_decontam_db:
         """
         (minimap2 {params.map_extras} -t {threads} {input.index} {input.query} | \
             samtools sort -@ {threads} -o {output.bam}) 2> {log}
+        samtools index -@ {threads} {output.bam} &>> {log}
+        """
+
+
+rule map_illumina_to_decontam_db:
+    input:
+        index=rules.index_decontam_db_bwa.output.bwa_index,
+        ref=rules.build_decontamination_db.output.fasta,
+        r1=rules.illumina_preprocessing.output.r1,
+        r2=rules.illumina_preprocessing.output.r2,
+    output:
+        bam=illumina_results / "mapped/{isolate}/{sample}.sorted.bam",
+        index=illumina_results / "mapped/{isolate}/{sample}.sorted.bam.bai",
+    threads: 8
+    resources:
+        mem_mb=lambda wildcards, attempt: attempt * int(12 * GB),
+    params:
+        map_extras="-M",
+    conda:
+        envs["aln_tools"]
+    log:
+        rule_log_dir / "map_illumina_to_decontam_db/{isolate}/{sample}.log",
+    shell:
+        """
+        (bwa mem {params.map_extras} -t {threads} {input.ref} {input.r1} {input.r2} | \
+            samtool fixmate -m -@ {threads} | \
+            samtools sort -@ {threads} | \
+            samtools markdup -r -S -O bam) 2> {log} > {output.bam}
         samtools index -@ {threads} {output.bam} &>> {log}
         """
 
