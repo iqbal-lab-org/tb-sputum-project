@@ -66,7 +66,7 @@ rule illumina_preprocessing:
         r2=illumina_dir / "{isolate}/{sample}_R2.fq.gz",
     output:
         r1=illumina_results / "preprocessing/{isolate}/{sample}_R1.fq.gz",
-        r2=Illumina_results / "preprocessing/{isolate}/{sample}_R2.fq.gz",
+        r2=illumina_results / "preprocessing/{isolate}/{sample}_R2.fq.gz",
         report=report(
             illumina_results / "preprocessing/{isolate}/{sample}.fastp.html",
             category="QC",
