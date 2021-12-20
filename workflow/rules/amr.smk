@@ -37,7 +37,7 @@ rule mykrobe_illumina:
         r1=rules.subsample_illumina_reads.output.r1,
         r2=rules.subsample_illumina_reads.output.r2,
     output:
-        report=illumina_results / "amr_predictions/{isolate}/{sample}.mykrobe.json",
+        report=illumina_results / "amr_predictions/{source}/{sample}.mykrobe.json",
     shadow:
         "shallow"
     resources:
@@ -45,7 +45,7 @@ rule mykrobe_illumina:
     container:
         containers["mykrobe"]
     log:
-        rule_log_dir / "mykrobe_illumina/{isolate}/{sample}.log",
+        rule_log_dir / "mykrobe_illumina/{source}/{sample}.log",
     params:
         opts=" ".join(
             [

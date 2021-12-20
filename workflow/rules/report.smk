@@ -24,7 +24,7 @@ rule plot_illumina_sample_composition:
         tsv=rules.generate_illumina_krona_input.output.krona_input,
     output:
         chart=report(
-            illumina_results / "plots/krona/{isolate}/{sample}.krona.html",
+            illumina_results / "plots/krona/{source}/{sample}.krona.html",
             category="Krona",
             subcategory="Illumina",
             caption=report_dir / "krona.rst",
@@ -35,7 +35,7 @@ rule plot_illumina_sample_composition:
     conda:
         str(env_dir / "krona.yaml")
     log:
-        rule_log_dir / "plot_illumina_sample_composition/{isolate}/{sample}.log",
+        rule_log_dir / "plot_illumina_sample_composition/{source}/{sample}.log",
     shell:
         "ktImportText {input.tsv} -o {output.chart} &> {log}"
 
@@ -78,25 +78,25 @@ rule nanopore_composition_report:
 
 
 def infer_illumina_filter_logs(wildcards):
-    samples = illumina_samples[wildcards.isolate]
+    samples = illumina_samples[wildcards.source]
     return [
-        rule_log_dir / f"filter_illumina_contamination/{wildcards.isolate}/{sample}.log"
+        rule_log_dir / f"filter_illumina_contamination/{wildcards.source}/{sample}.log"
         for sample in samples
     ]
 
 
 def infer_illumina_lineages_input(wildcards):
-    samples = illumina_samples[wildcards.isolate]
+    samples = illumina_samples[wildcards.source]
     return [
-        illumina_results / f"amr_predictions/{wildcards.isolate}/{sample}.mykrobe.json"
+        illumina_results / f"amr_predictions/{wildcards.source}/{sample}.mykrobe.json"
         for sample in samples
     ]
 
 
 def infer_illumina_subsample_logs(wildcards):
-    samples = illumina_samples[wildcards.isolate]
+    samples = illumina_samples[wildcards.source]
     return [
-        rule_log_dir / f"subsample_illumina_reads/{wildcards.isolate}/{sample}.log"
+        rule_log_dir / f"subsample_illumina_reads/{wildcards.source}/{sample}.log"
         for sample in samples
     ]
 
@@ -108,7 +108,7 @@ rule illumina_composition_report:
         subsample_logs=infer_illumina_subsample_logs,
     output:
         html=report(
-            report_dir / "illumina_{isolate}_composition.html",
+            report_dir / "illumina_{source}_composition.html",
             category="Composition",
             subcategory="Illumina",
             caption=report_dir / "composition.rst",
@@ -124,7 +124,7 @@ rule illumina_composition_report:
         unmapped_warning=5.0,
         covg_warning=20,
     log:
-        rule_log_dir / "illumina_composition_report/{isolate}.log",
+        rule_log_dir / "illumina_composition_report/{source}.log",
     script:
         str(scripts_dir / "composition_report.py")
 
@@ -161,7 +161,7 @@ rule illumina_amr_report:
         template=report_dir / "amr.html.jinja",
     output:
         report=report(
-            report_dir / "illumina_{isolate}_amr.html",
+            report_dir / "illumina_{source}_amr.html",
             category="AMR predictions",
             caption=report_dir / "amr.rst",
         ),
@@ -170,7 +170,7 @@ rule illumina_amr_report:
     params:
         script=scripts_dir / "amr_report.py",
     log:
-        rule_log_dir / "illumina_amr_report/{isolate}.log",
+        rule_log_dir / "illumina_amr_report/{source}.log",
     conda:
         str(env_dir / "amr_report.yaml")
     shell:

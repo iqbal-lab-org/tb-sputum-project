@@ -62,13 +62,13 @@ rule index_decontam_db_bwa:
 
 rule illumina_preprocessing:
     input:
-        r1=illumina_dir / "{isolate}/{sample}_R1.fq.gz",
-        r2=illumina_dir / "{isolate}/{sample}_R2.fq.gz",
+        r1=illumina_dir / "{source}/{sample}_R1.fq.gz",
+        r2=illumina_dir / "{source}/{sample}_R2.fq.gz",
     output:
-        r1=illumina_results / "preprocessing/{isolate}/{sample}_R1.fq.gz",
-        r2=illumina_results / "preprocessing/{isolate}/{sample}_R2.fq.gz",
+        r1=illumina_results / "preprocessing/{source}/{sample}_R1.fq.gz",
+        r2=illumina_results / "preprocessing/{source}/{sample}_R2.fq.gz",
         report=report(
-            illumina_results / "preprocessing/{isolate}/{sample}.fastp.html",
+            illumina_results / "preprocessing/{source}/{sample}.fastp.html",
             category="QC",
             caption=report_dir / "illumina_preprocessing.rst",
         ),
@@ -76,7 +76,7 @@ rule illumina_preprocessing:
     resources:
         mem_mb=lambda wildcards, attempt: attempt * int(4 * GB),
     log:
-        rule_log_dir / "illumina_preprocessing/{isolate}/{sample}.log",
+        rule_log_dir / "illumina_preprocessing/{source}/{sample}.log",
     container:
         containers["fastp"]
     params:
@@ -121,8 +121,8 @@ rule map_illumina_to_decontam_db:
         r1=rules.illumina_preprocessing.output.r1,
         r2=rules.illumina_preprocessing.output.r2,
     output:
-        bam=illumina_results / "mapped/{isolate}/{sample}.sorted.bam",
-        index=illumina_results / "mapped/{isolate}/{sample}.sorted.bam.bai",
+        bam=illumina_results / "mapped/{source}/{sample}.sorted.bam",
+        index=illumina_results / "mapped/{source}/{sample}.sorted.bam.bai",
     threads: 8
     resources:
         mem_mb=lambda wildcards, attempt: attempt * int(12 * GB),
@@ -131,7 +131,7 @@ rule map_illumina_to_decontam_db:
     conda:
         str(env_dir / "aln_tools.yaml")
     log:
-        rule_log_dir / "map_illumina_to_decontam_db/{isolate}/{sample}.log",
+        rule_log_dir / "map_illumina_to_decontam_db/{source}/{sample}.log",
     shell:
         """
         (bwa mem {params.map_extras} -t {threads} {input.ref} {input.r1} {input.r2} | \
@@ -175,9 +175,9 @@ rule filter_illumina_contamination:
         bam=rules.map_illumina_to_decontam_db.output.bam,
         metadata=rules.build_decontamination_db.output.metadata,
     output:
-        keep_ids=illumina_results / "filtered/{isolate}/{sample}/keep.reads",
-        contam_ids=illumina_results / "filtered/{isolate}/{sample}/contaminant.reads",
-        unmapped_ids=illumina_results / "filtered/{isolate}/{sample}/unmapped.reads",
+        keep_ids=illumina_results / "filtered/{source}/{sample}/keep.reads",
+        contam_ids=illumina_results / "filtered/{source}/{sample}/contaminant.reads",
+        unmapped_ids=illumina_results / "filtered/{source}/{sample}/unmapped.reads",
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: attempt * GB,
@@ -188,7 +188,7 @@ rule filter_illumina_contamination:
         extra="--verbose --ignore-secondary",
         outdir=lambda wildcards, output: Path(output.keep_ids).parent,
     log:
-        rule_log_dir / "filter_illumina_contamination/{isolate}/{sample}.log",
+        rule_log_dir / "filter_illumina_contamination/{source}/{sample}.log",
     shell:
         """
         python {params.script} {params.extra} \
@@ -221,13 +221,13 @@ rule extract_decontaminated_illumina_reads:
         r2=rules.map_illumina_to_decontam_db.input.r2,
         read_ids=rules.filter_illumina_contamination.output.keep_ids,
     output:
-        r1=illumina_results / "filtered/{isolate}/{sample}/{sample}_R1.filtered.fq.gz",
-        r2=illumina_results / "filtered/{isolate}/{sample}/{sample}_R2.filtered.fq.gz",
+        r1=illumina_results / "filtered/{source}/{sample}/{sample}_R1.filtered.fq.gz",
+        r2=illumina_results / "filtered/{source}/{sample}/{sample}_R2.filtered.fq.gz",
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: int(2 * GB) * attempt,
     log:
-        rule_log_dir / "extract_decontaminated_illumina_reads/{isolate}/{sample}.log",
+        rule_log_dir / "extract_decontaminated_illumina_reads/{source}/{sample}.log",
     container:
         containers["seqkit"]
     shell:
@@ -271,9 +271,9 @@ rule subsample_illumina_reads:
         ],
     output:
         r1=illumina_results
-        / "subsampled/{isolate}/{sample}/{sample}_R1.subsampled.fq.gz",
+        / "subsampled/{source}/{sample}/{sample}_R1.subsampled.fq.gz",
         r2=illumina_results
-        / "subsampled/{isolate}/{sample}/{sample}_R2.subsampled.fq.gz",
+        / "subsampled/{source}/{sample}/{sample}_R2.subsampled.fq.gz",
     threads: 1
     resources:
         mem_mb=int(0.5 * GB),
@@ -284,7 +284,7 @@ rule subsample_illumina_reads:
         genome_size=config["genome_size"],
         seed=88,
     log:
-        rule_log_dir / "subsample_illumina_reads/{isolate}/{sample}.log",
+        rule_log_dir / "subsample_illumina_reads/{source}/{sample}.log",
     shell:
         """
         rasusa -c {params.covg} \
@@ -323,7 +323,7 @@ rule generate_illumina_krona_input:
         bam=rules.map_illumina_to_decontam_db.output.bam,
         metadata=rules.build_decontamination_db.output.metadata,
     output:
-        krona_input=illumina_results / "plots/krona/{isolate}/{sample}.krona.tsv",
+        krona_input=illumina_results / "plots/krona/{source}/{sample}.krona.tsv",
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: int(0.5 * GB) * attempt,
@@ -333,7 +333,7 @@ rule generate_illumina_krona_input:
         script=scripts_dir / "generate_krona_input.py",
         extras="--ignore-secondary",
     log:
-        rule_log_dir / "generate_illumina_krona_input/{isolate}/{sample}.log",
+        rule_log_dir / "generate_illumina_krona_input/{source}/{sample}.log",
     shell:
         """
         python {params.script} {params.extras} \
