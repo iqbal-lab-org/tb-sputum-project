@@ -1,10 +1,11 @@
-samplesheet:     "docs/samplesheet.csv"
-nfs_data_dir:    "/nfs/research/zi/zi/projects/tb/mada-mumbai-sputum/"
-basecall_config: "dna_r9.4.1_450bps_sup_prom.cfg"
+ont_samplesheet:      "docs/ont_samples.csv"
+illumina_samplesheet: "docs/illumina_samples.csv"
+nfs_data_dir:         "/nfs/research/zi/zi/projects/tb/mada-mumbai-sputum/"
+basecall_config:      "dna_r9.4.1_450bps_sup_prom.cfg"
 max_covg: # subsample reads to this (if over)
   illumina: 100
   nanopore: 150
-genome_size:     4411532
+genome_size:          4411532
 containers:
   guppy-gpu: "docker://quay.io/mbhall88/guppy-gpu:5.0.16"
   guppy-cpu: "docker://quay.io/mbhall88/guppy-cpu:5.0.16"
