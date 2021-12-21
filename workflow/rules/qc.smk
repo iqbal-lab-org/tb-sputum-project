@@ -152,7 +152,7 @@ rule filter_nanopore_contamination:
         unmapped_ids=ont_results / "filtered/{sample}/unmapped.reads",
     threads: 1
     resources:
-        mem_mb=lambda wildcards, attempt: attempt * GB,
+        mem_mb=lambda wildcards, attempt: attempt * 4 * GB,
     conda:
         str(env_dir / "filter.yaml")
     params:
@@ -180,7 +180,7 @@ rule filter_illumina_contamination:
         unmapped_ids=illumina_results / "filtered/{source}/{sample}/unmapped.reads",
     threads: 1
     resources:
-        mem_mb=lambda wildcards, attempt: attempt * GB,
+        mem_mb=lambda wildcards, attempt: attempt * 4 * GB,
     conda:
         str(env_dir / "filter.yaml")
     params:
@@ -206,7 +206,7 @@ rule extract_decontaminated_nanopore_reads:
         reads=ont_results / "filtered/{sample}/{sample}.filtered.fq.gz",
     threads: 1
     resources:
-        mem_mb=lambda wildcards, attempt: int(2 * GB) * attempt,
+        mem_mb=lambda wildcards, attempt: int(4 * GB) * attempt,
     log:
         rule_log_dir / "extract_decontaminated_nanopore_reads/{sample}.log",
     container:
@@ -225,7 +225,7 @@ rule extract_decontaminated_illumina_reads:
         r2=illumina_results / "filtered/{source}/{sample}/{sample}_R2.filtered.fq.gz",
     threads: 1
     resources:
-        mem_mb=lambda wildcards, attempt: int(2 * GB) * attempt,
+        mem_mb=lambda wildcards, attempt: int(4 * GB) * attempt,
     log:
         rule_log_dir / "extract_decontaminated_illumina_reads/{source}/{sample}.log",
     container:
