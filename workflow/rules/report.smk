@@ -44,15 +44,15 @@ rule nanopore_composition_report:
     input:
         filter_logs=expand(
             rule_log_dir / "filter_nanopore_contamination/{sample}.log",
-            sample=samplesheet.index,
+            sample=ont_samplesheet.index,
         ),
         lineages=expand(
             ont_results / "amr_predictions/{sample}.mykrobe.json",
-            sample=samplesheet.index,
+            sample=ont_samplesheet.index,
         ),
         subsample_logs=expand(
             rule_log_dir / "subsample_nanopore_reads/{sample}.log",
-            sample=samplesheet.index,
+            sample=ont_samplesheet.index,
         ),
     output:
         html=report(
@@ -136,7 +136,7 @@ rule nanopore_amr_report:
     input:
         predictions=expand(
             ont_results / "amr_predictions/{sample}.mykrobe.json",
-            sample=samplesheet.index,
+            sample=ont_samplesheet.index,
         ),
         template=report_dir / "amr.html.jinja",
     output:
