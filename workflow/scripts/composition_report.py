@@ -89,7 +89,7 @@ def highlight_abnormal_lineages(col: pd.Series):
 
 
 data = defaultdict(dict)
-logfiles = snakemake.input.filter_logfiles
+logfiles = snakemake.input.filter_logs
 for file in logfiles:
     sample = file.name.split(".")[0]
     num_keep, num_contam, num_unmapped = ripgrep_search(file)
