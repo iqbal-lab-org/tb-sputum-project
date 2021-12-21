@@ -90,7 +90,7 @@ def highlight_abnormal_lineages(col: pd.Series):
 
 data = defaultdict(dict)
 logfiles = snakemake.input.filter_logs
-for file in logfiles:
+for file in map(Path, logfiles):
     sample = file.name.split(".")[0]
     num_keep, num_contam, num_unmapped = ripgrep_search(file)
     total = sum([num_keep, num_contam, num_unmapped])
@@ -106,13 +106,13 @@ for file in logfiles:
         }
     )
 
-for file in snakemake.input.subsample_logs:
+for file in map(Path, snakemake.input.subsample_logs):
     covg = ripgrep_extract_covg(file)
     sample = file.name.split(".")[0]
     data[sample]["coverage"] = round(covg, 1)
 
 assignment_files = snakemake.input.lineages
-for file in assignment_files:
+for file in map(Path, assignment_files):
     sample = file.name.split(".")[0]
     with open(file) as fp:
         lineage = json.load(fp)[sample]["phylogenetics"]["lineage"]["lineage"][0]
