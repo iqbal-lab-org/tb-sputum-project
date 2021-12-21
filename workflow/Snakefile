@@ -13,7 +13,8 @@ min_version("6.10.0")
 configfile: "config/config.yaml"
 
 
-samplesheet = pd.read_csv(config["samplesheet"], index_col="sample")
+ont_samplesheet = pd.read_csv(config["ont_samplesheet"], index_col="sample")
+illumina_samplesheet = pd.read_csv(config["illumina_samplesheet"])
 containers: Dict[str, str] = config["containers"]
 # =====================================
 
@@ -32,8 +33,7 @@ rule_log_dir = Path("logs/stderr")
 decontam_db = data_dir / "decontam_db"
 results = Path("results").resolve()
 ont_results = results / "nanopore"
-#todo
-illumina_samples = dict()
+SOURCES = list(set(illumina_samplesheet["source"]))
 illumina_results = results / "illumina"
 report_dir = results / "report"
 BWA_EXTNS = [".amb", ".ann", ".bwt", ".pac", ".sa"]
@@ -43,9 +43,11 @@ BWA_EXTNS = [".amb", ".ann", ".bwt", ".pac", ".sa"]
 # =====================================
 # Generate the set of required output files from the pipeline
 output: Set[Path] = set()
-# for sample, row in samplesheet.iterrows():
 output.add(report_dir / "nanopore_composition.html")
 output.add(report_dir / "nanopore_amr.html")
+for src in SOURCES:
+    output.add(report_dir / f"illumina_{src}_composition.html")
+    output.add(report_dir / f"illumina_{src}_amr.html")
 # =====================================
 
 

@@ -78,26 +78,29 @@ rule nanopore_composition_report:
 
 
 def infer_illumina_filter_logs(wildcards):
-    samples = illumina_samples[wildcards.source]
+    src = wildcards.source
+    subdf = illumina_samplesheet.query("source==@src")
     return [
-        rule_log_dir / f"filter_illumina_contamination/{wildcards.source}/{sample}.log"
-        for sample in samples
+        rule_log_dir / f"filter_illumina_contamination/{src}/{sample}.log"
+        for sample in subdf["sample"]
     ]
 
 
 def infer_illumina_lineages_input(wildcards):
-    samples = illumina_samples[wildcards.source]
+    src = wildcards.source
+    subdf = illumina_samplesheet.query("source==@src")
     return [
-        illumina_results / f"amr_predictions/{wildcards.source}/{sample}.mykrobe.json"
-        for sample in samples
+        illumina_results / f"amr_predictions/{src}/{sample}.mykrobe.json"
+        for sample in subdf["sample"]
     ]
 
 
 def infer_illumina_subsample_logs(wildcards):
-    samples = illumina_samples[wildcards.source]
+    src = wildcards.source
+    subdf = illumina_samplesheet.query("source==@src")
     return [
-        rule_log_dir / f"subsample_illumina_reads/{wildcards.source}/{sample}.log"
-        for sample in samples
+        rule_log_dir / f"subsample_illumina_reads/{src}/{sample}.log"
+        for sample in subdf["sample"]
     ]
 
 
