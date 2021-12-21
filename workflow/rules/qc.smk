@@ -135,10 +135,11 @@ rule map_illumina_to_decontam_db:
     shell:
         """
         (bwa mem {params.map_extras} -t {threads} {input.ref} {input.r1} {input.r2} | \
-            samtool fixmate -m -@ {threads} | \
+            samtools sort -n -@ {threads} | \
+            samtools fixmate -m -@ {threads} - - | \
             samtools sort -@ {threads} | \
-            samtools markdup -r -S -O bam) 2> {log} > {output.bam}
-        samtools index -@ {threads} {output.bam} &>> {log}
+            samtools markdup -r -S -O bam - {output.bam}) 2> {log} 
+        samtools index -b -@ {threads} {output.bam} 2>> {log}
         """
 
 
