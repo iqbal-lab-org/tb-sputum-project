@@ -5,7 +5,7 @@ import pandas as pd
 
 def infer_barcode_opts(wildcards, threads: int) -> str:
     run = wildcards.run
-    run_df = samplesheet.query("run == @run")
+    run_df = ont_samplesheet.query("run == @run")
     if len(run_df) == 1:  # singleplex
         return ""
     elif len(run_df) == 0:
@@ -51,12 +51,12 @@ rule basecall:
 
 
 def infer_basecall_run_dir(wildcards):
-    run = samplesheet.at[wildcards.sample, "run"]
+    run = ont_samplesheet.at[wildcards.sample, "run"]
     return data_dir / f"basecalls/guppy_v{GUPPY_VERSION}/{run}/"
 
 
 def infer_sample_fastq_dir(sample, indir):
-    barcode = samplesheet.at[sample, "barcode"]
+    barcode = ont_samplesheet.at[sample, "barcode"]
     if pd.isna(barcode):  # singleplex
         return Path(indir) / "pass"
     return Path(indir) / f"pass/barcode{barcode[-2:]}"
