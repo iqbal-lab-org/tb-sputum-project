@@ -194,7 +194,7 @@ def highlight_low_coverage(col: pd.Series):
     return [f"background-color: {NORD12}" if val < covg_warning else "" for val in col]
 
 
-def highlight_abnormal_lineages(col: pd.Series[Lineage]):
+def highlight_abnormal_lineages(col: pd.Series):
     """Highlights cells if their lineage is not one of the numbered majors."""
     return [f"background-color: {NORD12}" if v.major.isalpha() else "" for v in col]
 
@@ -269,6 +269,6 @@ html = jinja2.Template(template_content).render(
     unmapped_warning=unmapped_warning,
     covg_warning=covg_warning,
 )
-outfile = snakemake.output.html
-outfile.write(html)
-outfile.close()
+
+with open(snakemake.output.html, "w") as outfile:
+    outfile.write(html)
