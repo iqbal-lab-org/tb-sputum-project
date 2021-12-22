@@ -249,6 +249,7 @@ for file in map(Path, assignment_files):
 
 df = pd.DataFrame(data).T
 df.index.name = "sample"
+df.sort_index(inplace=True)
 
 percent_format_cols = [s for s in data[list(data.keys())[0]].keys() if s.endswith("%")]
 df_styled = (

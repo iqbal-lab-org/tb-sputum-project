@@ -26,7 +26,7 @@ rule plot_illumina_sample_composition:
         chart=report(
             illumina_results / "plots/krona/{source}/{sample}.krona.html",
             category="Krona",
-            subcategory="Illumina",
+            subcategory="Illumina {source}",
             caption=report_dir / "krona.rst",
         ),
     threads: 1
