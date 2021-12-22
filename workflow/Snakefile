@@ -48,6 +48,11 @@ output.add(report_dir / "nanopore_amr.html")
 for src in SOURCES:
     output.add(report_dir / f"illumina_{src}_composition.html")
     output.add(report_dir / f"illumina_{src}_amr.html")
+    for sample in illumina_samplesheet.query("source==@src")["sample"]:
+        output.add(illumina_results / f"plots/krona/{src}/{sample}.krona.html")
+
+for sample in ont_samplesheet["sample"]:
+    output.add(ont_results / f"plots/krona/{sample}.krona.html")
 # =====================================
 
 
