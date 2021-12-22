@@ -51,7 +51,7 @@ for src in SOURCES:
     for sample in illumina_samplesheet.query("source==@src")["sample"]:
         output.add(illumina_results / f"plots/krona/{src}/{sample}.krona.html")
 
-for sample in ont_samplesheet["sample"]:
+for sample in ont_samplesheet.index:
     output.add(ont_results / f"plots/krona/{sample}.krona.html")
 # =====================================
 
