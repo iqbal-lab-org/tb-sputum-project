@@ -301,7 +301,7 @@ rule generate_nanopore_krona_input:
         bam=rules.map_nanopore_to_decontam_db.output.bam,
         metadata=rules.build_decontamination_db.output.metadata,
     output:
-        krona_input=ont_results / "plots/   krona/{sample}.krona.tsv",
+        krona_input=ont_results / "plots/krona/{sample}.krona.tsv",
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: int(0.5 * GB) * attempt,
