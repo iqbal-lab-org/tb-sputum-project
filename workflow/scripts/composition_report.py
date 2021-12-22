@@ -40,6 +40,7 @@ def ripgrep_search(file: Path) -> Tuple[int, int, int]:
     to_keep, contam, unmapped = list(values)
     return to_keep, contam, unmapped
 
+
 def ripgrep_extract_covg(file: Path) -> float:
     pattern = r"Actual cov.*\s(?P<covg>\d+?\.?\d+)x"
     extra_params = ["--replace", "$covg", "--only-matching", "--no-line-number"]
@@ -56,6 +57,7 @@ def ripgrep_extract_covg(file: Path) -> float:
             f"following error:\n{process.stderr.read()}"
         )
     return float(process.stdout.read().strip())
+
 
 contam_warning = snakemake.params.get("contam_warning", 5.0) / 100
 unmapped_warning = snakemake.params.get("unmapped_warning", 5.0) / 100
@@ -77,11 +79,11 @@ def highlight_high_unmapped(col: pd.Series):
         f"background-color: {NORD12}" if val > unmapped_warning else "" for val in col
     ]
 
+
 def highlight_low_coverage(col: pd.Series):
     """Highlights cells if their coverage is less than the threshold"""
-    return [
-        f"background-color: {NORD12}" if val < covg_warning else "" for val in col
-    ]
+    return [f"background-color: {NORD12}" if val < covg_warning else "" for val in col]
+
 
 def highlight_abnormal_lineages(col: pd.Series):
     """Highlights cells if their lineage is not one of the numbered majors."""
@@ -115,7 +117,12 @@ assignment_files = snakemake.input.lineages
 for file in map(Path, assignment_files):
     sample = file.name.split(".")[0]
     with open(file) as fp:
-        lineage = json.load(fp)[sample]["phylogenetics"]["lineage"]["lineage"][0]
+        try:
+            lineage = json.load(fp)[sample]["phylogenetics"]["lineage"]["lineage"][0]
+        except KeyError as err:
+            raise KeyError(
+                f"Could not find key {err} for sample {sample} in file {file}"
+            )
         lineage = lineage.replace("lineage", "")
         data[sample]["lineage"] = lineage
 
