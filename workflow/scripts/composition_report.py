@@ -194,9 +194,9 @@ def highlight_low_coverage(col: pd.Series):
     return [f"background-color: {NORD12}" if val < covg_warning else "" for val in col]
 
 
-def highlight_abnormal_lineages(col: pd.Series):
+def highlight_abnormal_lineages(col: pd.Series[Lineage]):
     """Highlights cells if their lineage is not one of the numbered majors."""
-    return [f"background-color: {NORD12}" if v.isalpha() else "" for v in col]
+    return [f"background-color: {NORD12}" if v.major.isalpha() else "" for v in col]
 
 
 def highlight_abnormal_species(col: pd.Series):
