@@ -206,4 +206,8 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-tmp
+tmp/
+data/
+results/illumina/
+results/nanopore/
+logs/
