@@ -304,7 +304,7 @@ rule generate_nanopore_krona_input:
         krona_input=ont_results / "plots/krona/{sample}.krona.tsv",
     threads: 1
     resources:
-        mem_mb=lambda wildcards, attempt: int(0.5 * GB) * attempt,
+        mem_mb=lambda wildcards, attempt: int(1 * GB) * attempt,
     conda:
         str(env_dir / "krona.yaml")
     params:
@@ -327,7 +327,7 @@ rule generate_illumina_krona_input:
         krona_input=illumina_results / "plots/krona/{source}/{sample}.krona.tsv",
     threads: 1
     resources:
-        mem_mb=lambda wildcards, attempt: int(0.5 * GB) * attempt,
+        mem_mb=lambda wildcards, attempt: int(1 * GB) * attempt,
     conda:
         str(env_dir / "krona.yaml")
     params:
