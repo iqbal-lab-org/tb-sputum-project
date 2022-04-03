@@ -53,6 +53,7 @@ for src in SOURCES:
 
 for sample in ont_samplesheet.index:
     output.add(ont_results / f"plots/krona/{sample}.krona.html")
+    output.add(ont_results / f"summary/{sample}.nanoq.tsv")
 # =====================================
 
 

@@ -14,3 +14,4 @@ containers:
   rasusa:    "docker://quay.io/mbhall88/rasusa:0.6.0"
   mykrobe:   "docker://quay.io/biocontainers/mykrobe:0.10.0--py38h8e3bb3f_0"
   fastp:     "docker://quay.io/biocontainers/fastp:0.23.2--h79da9fb_0"
+  nanoq:     "docker://quay.io/biocontainers/nanoq:0.8.6--hec16e2b_1"

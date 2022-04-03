@@ -340,3 +340,14 @@ rule generate_illumina_krona_input:
         python {params.script} {params.extras} \
             -i {input.bam} -m {input.metadata} -o {output.krona_input} 2> {log}
         """
+
+
+rule nanopore_summary_stats:
+    input:
+        reads=rules.subsample_nanopore_reads.input.reads,
+    output:
+        table=ont_results / "summary/{sample}.nanoq.tsv",
+    container:
+        containers["nanoq"]
+    shell:
+        "nanoq -i {input.reads} -Hs 2> {output}"
