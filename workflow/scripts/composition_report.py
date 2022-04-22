@@ -240,7 +240,17 @@ for file in map(Path, assignment_files):
         else:
             lineages = [Lineage.from_str(l) for l in lineage_calls.keys()]
 
-        data[sample]["lineage"] = Lineage.call(lineages)
+        non_filtered_lineages = set()
+        for lin in lineages:
+            calls = lineage_calls["calls"]
+            for k, v in calls.items():
+                if lin in v:
+                    variants = v[lin]
+                    filters = variants[list(variants.keys())[0]]["info"]["filter"]
+                    if not filters:
+                        non_filtered_lineages.add(lin)
+
+        data[sample]["lineage"] = Lineage.call(list(non_filtered_lineages))
         species = list(phylo["species"].keys())
         if len(species) != 1:
             raise ValueError(f"Unexpected number of species {species}")
