@@ -236,9 +236,9 @@ for file in map(Path, assignment_files):
         phylo = json.load(fp)[sample]["phylogenetics"]
         lineage_calls = phylo["lineage"]
         if "lineage" in lineage_calls:
-            lineages = [Lineage.from_str(l) for l in lineage_calls["lineage"]]
+            lineages = lineage_calls["lineage"]
         else:
-            lineages = [Lineage.from_str(l) for l in lineage_calls.keys()]
+            lineages = list(lineage_calls.keys())
 
         non_filtered_lineages = set()
         for lin in lineages:
@@ -249,6 +249,8 @@ for file in map(Path, assignment_files):
                     filters = variants[list(variants.keys())[0]]["info"]["filter"]
                     if not filters:
                         non_filtered_lineages.add(lin)
+
+        non_filtered_lineages = [Lineage.from_str(l) for l in non_filtered_lineages]
 
         data[sample]["lineage"] = Lineage.call(list(non_filtered_lineages))
         species = list(phylo["species"].keys())
