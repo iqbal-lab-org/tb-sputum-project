@@ -1,0 +1,69 @@
+from pathlib import Path
+import os
+import pandas as pd
+
+
+configfile: "config/config.yaml"
+
+
+GB = 1_024
+ont_samplesheet = pd.read_csv(config["ont_samplesheet"])
+illumina_samplesheet = pd.read_csv(config["illumina_samplesheet"])
+
+with open(config["final_samples"]) as fp:
+    final_samples = set(fp.read().splitlines())
+
+WORKFLOW = Path("workflow").resolve()
+SCRIPTS = WORKFLOW / "scripts"
+ENVS = WORKFLOW / "envs"
+RESULTS = Path("results").resolve()
+LOGS = Path("logs/rules").resolve()
+RESOURCES = Path("resources").resolve()
+CONTAINERS = config["containers"]
+
+target_files = set()
+
+
+rule all:
+    input:
+        target_files,
+
+
+rule create_samples_xml:
+    input:
+        sheet=config["samplesheet"],
+    output:
+        xml=RESULTS / "samples/samples.xml",
+    log:
+        LOGS / "create_samples_xml.log",
+    params:
+        date="2019",
+        samples=final_samples,
+    container:
+        CONTAINERS["python"]
+    script:
+        str(SCRIPTS / "samples2xml.py")
+
+
+rule submit_samples:
+    input:
+        samples=rules.create_samples_xml.output.xml,
+        submission=RESOURCES / "submission.xml",
+    output:
+        response=RESULTS / "samples/response.xml",
+    log:
+        LOGS / "submit_samples.log",
+    conda:
+        str(ENVS / "curl.yaml")
+    params:
+        # url="https://www.ebi.ac.uk/ena/submit/drop-box/submit/",
+        url="https://wwwdev.ebi.ac.uk/ena/submit/drop-box/submit/",
+        uname=os.environ["UNAME"],
+        passwd=os.environ["PASSWD"],
+    shell:
+        """
+        curl -u {params.uname}:{params.passwd} \
+          -F "SUBMISSION=@{input.submission}" \
+          -F "SAMPLE=@{input.samples}" \
+          {params.url} > {output.response} 2> {log}
+        """

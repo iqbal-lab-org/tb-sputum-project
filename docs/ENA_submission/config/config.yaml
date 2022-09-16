@@ -1,0 +1,7 @@
+project_accession:    "PRJEB56100"
+final_samples:        "../final_samples.csv"
+ont_samplesheet:      "../ont_samples.csv"
+illumina_samplesheet: "../illumina_samples.csv"
+
+containers:
+  python: "docker://python:3.10.4-slim-bullseye"
