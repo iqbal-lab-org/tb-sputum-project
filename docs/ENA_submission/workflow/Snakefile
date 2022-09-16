@@ -30,8 +30,6 @@ rule all:
 
 
 rule create_samples_xml:
-    input:
-        sheet=config["samplesheet"],
     output:
         xml=RESULTS / "samples/samples.xml",
     log:
