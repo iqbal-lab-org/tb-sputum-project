@@ -22,7 +22,7 @@ RESOURCES = Path("resources").resolve()
 CONTAINERS = config["containers"]
 
 target_files = set()
-
+target_files.add(RESULTS / "samples/response.xml")
 
 rule all:
     input:
