@@ -22,7 +22,33 @@ RESOURCES = Path("resources").resolve()
 CONTAINERS = config["containers"]
 
 target_files = set()
-target_files.add(RESULTS / "samples/accessions.csv")
+
+
+def sample_name(s: str) -> str:
+    for sfx in ["_rep1", "_rep2", "-singleplex", "-multiplex"]:
+        s = s.replace(sfx, "")
+    return s
+
+
+for _, row in ont_samplesheet.iterrows():
+    alias = row["sample"]
+    sample = sample_name(alias)
+    if sample not in final_samples:
+        continue
+    tech = "nanopore"
+    source = "sputum"
+
+    target_files.add(RESULTS / f"reads/{tech}/{source}/{sample}.tsv")
+
+for _, row in illumina_samplesheet.iterrows():
+    sample = row["sample"]
+    source = row["source"]
+    if sample not in final_samples:
+        continue
+    tech = "illumina"
+
+    target_files.add(RESULTS / f"reads/{tech}/{source}/{sample}.tsv")
+
 
 rule all:
     input:
@@ -66,6 +92,7 @@ rule submit_samples:
           {params.url} > {output.response} 2> {log}
         """
 
+
 rule add_sample_accessions_to_sheet:
     input:
         xml=rules.submit_samples.output.response,
@@ -76,4 +103,20 @@ rule add_sample_accessions_to_sheet:
     container:
         CONTAINERS["python"]
     script:
-        str( SCRIPTS / "add_sample_accessions_to_sheet.py")
+        str(SCRIPTS / "add_sample_accessions_to_sheet.py")
+
+
+rule create_read_manifest:
+    input:
+        samples=rules.add_sample_accessions_to_sheet.output.csv,
+    output:
+        manifest=RESULTS / "reads/{tech}/{source}/{sample}.tsv",
+    log:
+        LOGS / "create_read_manifest/{tech}/{source}/{sample}.log",
+    params:
+        project=config["project_accession"],
+        reads_dir=config["reads_dir"],
+    conda:
+        str(ENVS / "create_read_manifest.yaml")
+    script:
+        str(SCRIPTS / "create_read_manifest.py")
