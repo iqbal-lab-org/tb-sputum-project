@@ -11,7 +11,7 @@ ont_samplesheet = pd.read_csv(config["ont_samplesheet"])
 illumina_samplesheet = pd.read_csv(config["illumina_samplesheet"])
 
 with open(config["final_samples"]) as fp:
-    final_samples = set(fp.read().splitlines())
+    final_samples = sorted(set(fp.read().splitlines()))
 
 WORKFLOW = Path("workflow").resolve()
 SCRIPTS = WORKFLOW / "scripts"
