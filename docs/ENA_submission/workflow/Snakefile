@@ -140,7 +140,8 @@ rule submit_read_data:
         mem_mb=lambda wildcards, attempt: int(4 * GB) * attempt,
     shell:
         """
+        mkdir -p {output.receipt} 2> {log}
         ena-webin-cli {params.opts} -context {params.context} -manifest {input.manifest} \
           -username {params.uname} -passwordEnv={params.passwd_envvar} -inputDir / \
-          -outputDir {output.receipt} &> {log}
+          -outputDir {output.receipt} &>> {log}
         """
