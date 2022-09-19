@@ -135,12 +135,12 @@ rule submit_read_data:
         context="reads",
         uname=os.environ["UNAME"],
         passwd_envvar="PASSWD",
-        opts="-test",
-        # opts="-submit",
+        opts="-test -submit",
     resources:
         mem_mb=lambda wildcards, attempt: int(4 * GB) * attempt,
     shell:
         """
         ena-webin-cli {params.opts} -context {params.context} -manifest {input.manifest} \
-          -username {params.uname} -passwordEnv={params.passwd_envvar} -inputDir / &> {log}
+          -username {params.uname} -passwordEnv={params.passwd_envvar} -inputDir / \
+          -outputDir {output.receipt} &> {log}
         """
