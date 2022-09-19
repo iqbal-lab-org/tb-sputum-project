@@ -38,7 +38,7 @@ for _, row in ont_samplesheet.iterrows():
     tech = "nanopore"
     source = "sputum"
 
-    target_files.add(RESULTS / f"reads/{tech}/{source}/{alias}.tsv")
+    target_files.add(RESULTS / f"reads/{tech}/{source}/submit/{alias}")
 
 for _, row in illumina_samplesheet.iterrows():
     sample = row["sample"]
@@ -47,7 +47,7 @@ for _, row in illumina_samplesheet.iterrows():
         continue
     tech = "illumina"
 
-    target_files.add(RESULTS / f"reads/{tech}/{source}/{sample}.tsv")
+    target_files.add(RESULTS / f"reads/{tech}/{source}/submit/{sample}")
 
 
 rule all:
@@ -120,3 +120,27 @@ rule create_read_manifest:
         str(ENVS / "create_read_manifest.yaml")
     script:
         str(SCRIPTS / "create_read_manifest.py")
+
+
+rule submit_read_data:
+    input:
+        manifest=rules.create_read_manifest.output.manifest,
+    output:
+        receipt=directory(RESULTS / "reads/{tech}/{source}/submit/{sample}"),
+    log:
+        LOGS / "submit_read_data/{tech}/{source}/{sample}.log",
+    conda:
+        str(ENVS / "submit_read_data.yaml")
+    params:
+        context="reads",
+        uname=os.environ["UNAME"],
+        passwd_envvar="PASSWD",
+        opts="-test",
+        # opts="-submit",
+    resources:
+        mem_mb=lambda wildcards, attempt: int(4 * GB) * attempt,
+    shell:
+        """
+        ena-webin-cli {params.opts} -context {params.context} -manifest {input.manifest} \
+          -username {params.uname} -passwordEnv={params.passwd_envvar} -inputDir / &> {log}
+        """
