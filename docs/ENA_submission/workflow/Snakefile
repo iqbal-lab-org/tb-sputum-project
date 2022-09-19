@@ -38,7 +38,7 @@ for _, row in ont_samplesheet.iterrows():
     tech = "nanopore"
     source = "sputum"
 
-    target_files.add(RESULTS / f"reads/{tech}/{source}/{sample}.tsv")
+    target_files.add(RESULTS / f"reads/{tech}/{source}/{alias}.tsv")
 
 for _, row in illumina_samplesheet.iterrows():
     sample = row["sample"]
