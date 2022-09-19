@@ -22,7 +22,7 @@ RESOURCES = Path("resources").resolve()
 CONTAINERS = config["containers"]
 
 target_files = set()
-target_files.add(RESULTS / "samples/response.xml")
+target_files.add(RESULTS / "samples/accessions.csv")
 
 rule all:
     input:
@@ -65,3 +65,15 @@ rule submit_samples:
           -F "SAMPLE=@{input.samples}" \
           {params.url} > {output.response} 2> {log}
         """
+
+rule add_sample_accessions_to_sheet:
+    input:
+        xml=rules.submit_samples.output.response,
+    output:
+        csv=RESULTS / "samples/accessions.csv",
+    log:
+        LOGS / "add_sample_accessions_to_sheet.log",
+    container:
+        CONTAINERS["python"]
+    script:
+        str( SCRIPTS / "add_sample_accessions_to_sheet.py")
