@@ -54,8 +54,8 @@ rule submit_samples:
     conda:
         str(ENVS / "curl.yaml")
     params:
-        # url="https://www.ebi.ac.uk/ena/submit/drop-box/submit/",
-        url="https://wwwdev.ebi.ac.uk/ena/submit/drop-box/submit/",
+        url="https://www.ebi.ac.uk/ena/submit/drop-box/submit/",
+        # url="https://wwwdev.ebi.ac.uk/ena/submit/drop-box/submit/",
         uname=os.environ["UNAME"],
         passwd=os.environ["PASSWD"],
     shell:
