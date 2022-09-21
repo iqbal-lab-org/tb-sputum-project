@@ -6,4 +6,4 @@ reads_dir:            "/hps/nobackup/iqbal/mbhall/basecall-tb-sputum-project/res
 
 containers:
   python: "docker://python:3.10.4-slim-bullseye"
-  webin:  "docker://enasequence/webin-cli:5.0.0"
+  webin:  "docker://quay.io/mbhall88/ena-webin-cli:5.0.0"

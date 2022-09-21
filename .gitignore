@@ -210,4 +210,6 @@ tmp/
 data/
 results/illumina/
 results/nanopore/
+results/report/
 logs/
+workflow/notebooks/
