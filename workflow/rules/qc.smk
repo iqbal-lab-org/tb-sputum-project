@@ -233,8 +233,8 @@ rule extract_decontaminated_illumina_reads:
         containers["seqkit"]
     shell:
         """
-        seqkit grep -o {output.r1} -f {input.read_ids} {input.r1} 2> {log}
-        seqkit grep -o {output.r2} -f {input.read_ids} {input.r2} 2>> {log}
+        (seqkit grep -f {input.read_ids} {input.r1} | paste - - | sed 's/^\(\S*\)/\1\/1/' | tr "\t" "\n" | gzip) > {output.r1}  2> {log}
+        (seqkit grep -f {input.read_ids} {input.r2} | paste - - | sed 's/^\(\S*\)/\1\/2/' | tr "\t" "\n" | gzip) > {output.r2} 2>> {log}
         """
 
 
