@@ -57,8 +57,8 @@ def main():
         assert f.exists(), f
 
     library_selection = "unspecified"
-    library_source = "GENOMIC"
-    library_strategy = "WGS" if source == "culture" else "METAGENOMIC"
+    library_source = "GENOMIC" if source == "culture" else "METAGENOMIC"
+    library_strategy = "WGS"
 
     with open(snakemake.output.manifest, "w") as fp:
         print(f"STUDY\t{project}", file=fp)
