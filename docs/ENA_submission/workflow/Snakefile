@@ -129,8 +129,8 @@ rule submit_read_data:
         receipt=directory(RESULTS / "reads/{tech}/{source}/submit/{sample}"),
     log:
         LOGS / "submit_read_data/{tech}/{source}/{sample}.log",
-    conda:
-        str(ENVS / "submit_read_data.yaml")
+    container:
+        CONTAINERS["webin"]
     params:
         context="reads",
         uname=os.environ["UNAME"],
@@ -141,7 +141,7 @@ rule submit_read_data:
     shell:
         """
         mkdir -p {output.receipt} 2> {log}
-        ena-webin-cli {params.opts} -context {params.context} -manifest {input.manifest} \
+        java -jar /webin-cli.jar {params.opts} -context {params.context} -manifest {input.manifest} \
           -username {params.uname} -passwordEnv={params.passwd_envvar} -inputDir / \
           -outputDir {output.receipt} &>> {log}
         """
