@@ -3,4 +3,4 @@ channels:
   - bioconda
   - conda-forge
 dependencies:
-  - ena-webin-cli=4.3.0
+  - ena-webin-cli=5.0
