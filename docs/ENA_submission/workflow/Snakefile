@@ -145,3 +145,37 @@ rule submit_read_data:
           -username {params.uname} -passwordEnv={params.passwd_envvar} -inputDir / \
           -outputDir {output.receipt} &>> {log}
         """
+
+
+receipt_dirs = set()
+for _, row in ont_samplesheet.iterrows():
+    alias = row["sample"]
+    sample = sample_name(alias)
+    if sample not in final_samples:
+        continue
+    tech = "nanopore"
+    source = "sputum"
+
+    receipt_dirs.add(RESULTS / f"reads/{tech}/{source}/submit/{alias}")
+
+for _, row in illumina_samplesheet.iterrows():
+    sample = row["sample"]
+    source = row["source"]
+    if sample not in final_samples:
+        continue
+    tech = "illumina"
+
+    receipt_dirs.add(RESULTS / f"reads/{tech}/{source}/submit/{sample}")
+
+
+rule add_run_accessions_to_sheet:
+    input:
+        receipts=receipt_dirs,
+    output:
+        sheet=RESULTS / "reads/accessions.csv",
+    log:
+        LOGS / "add_run_accessions_to_sheet.log",
+    container:
+        CONTAINERS["python"]
+    script:
+        str(SCRIPTS / "add_run_accessions_to_sheet.py")
