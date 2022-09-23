@@ -42,7 +42,7 @@ def extract_accessions_from_receipt(file: Path) -> Tuple[str, str, str, str, str
 failed: List[Path] = []
 passed: List[Tuple[str, str, str, str, str]] = []
 
-for d in map(Path, snakemake.input.receipt_dirs):
+for d in map(Path, snakemake.input.receipts):
     xmls = list(d.rglob("*receipt.xml"))
     if len(xmls) != 1:
         raise ValueError(f"{d} has too many receipts")
