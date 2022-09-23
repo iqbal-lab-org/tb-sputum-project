@@ -30,24 +30,7 @@ def sample_name(s: str) -> str:
     return s
 
 
-for _, row in ont_samplesheet.iterrows():
-    alias = row["sample"]
-    sample = sample_name(alias)
-    if sample not in final_samples:
-        continue
-    tech = "nanopore"
-    source = "sputum"
-
-    target_files.add(RESULTS / f"reads/{tech}/{source}/submit/{alias}")
-
-for _, row in illumina_samplesheet.iterrows():
-    sample = row["sample"]
-    source = row["source"]
-    if sample not in final_samples:
-        continue
-    tech = "illumina"
-
-    target_files.add(RESULTS / f"reads/{tech}/{source}/submit/{sample}")
+target_files.add(RESULTS / "reads/accessions.csv")
 
 
 rule all:
